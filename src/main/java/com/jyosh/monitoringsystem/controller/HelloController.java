@@ -2,19 +2,18 @@ package com.jyosh.monitoringsystem.controller;
 
 import com.jyosh.monitoringsystem.entity.Monitor;
 import com.jyosh.monitoringsystem.model.StatusResponse;
-import com.jyosh.monitoringsystem.repository.MonitorRepository;
+import com.jyosh.monitoringsystem.service.MonitorService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 public class HelloController {
 
-    private final MonitorRepository monitorRepository;
+    private final MonitorService monitorService;
 
-    public HelloController(MonitorRepository monitorRepository) {
-        this.monitorRepository = monitorRepository;
+    public HelloController(MonitorService monitorService) {
+        this.monitorService = monitorService;
     }
 
     @GetMapping("/api/status")
@@ -27,36 +26,24 @@ public class HelloController {
 
     @GetMapping("/api/monitors")
     public List<Monitor> getMonitors() {
-        return monitorRepository.findAll();
+        return monitorService.getAllMonitors();
     }
 
     @PostMapping("/api/monitors")
     public Monitor createMonitor(@RequestBody Monitor monitor) {
-        return monitorRepository.save(monitor);
+        return monitorService.createMonitor(monitor);
     }
+
     @PutMapping("/api/monitors/{id}")
     public Monitor updateMonitor(
             @PathVariable Long id,
             @RequestBody Monitor updatedMonitor) {
 
-        Optional<Monitor> monitorOptional =
-                monitorRepository.findById(id);
-
-        if (monitorOptional.isPresent()) {
-
-            Monitor monitor = monitorOptional.get();
-
-            monitor.setName(updatedMonitor.getName());
-            monitor.setUrl(updatedMonitor.getUrl());
-            monitor.setStatus(updatedMonitor.getStatus());
-
-            return monitorRepository.save(monitor);
-        }
-
-        return null;
+        return monitorService.updateMonitor(id, updatedMonitor);
     }
+
     @DeleteMapping("/api/monitors/{id}")
     public void deleteMonitor(@PathVariable Long id) {
-        monitorRepository.deleteById(id);
+        monitorService.deleteMonitor(id);
     }
 }
