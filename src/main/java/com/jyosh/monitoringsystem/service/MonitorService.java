@@ -1,23 +1,44 @@
 package com.jyosh.monitoringsystem.service;
 
+import com.jyosh.monitoringsystem.dto.MonitorDto;
 import com.jyosh.monitoringsystem.entity.Monitor;
+import com.jyosh.monitoringsystem.exception.MonitorNotFoundException;
 import com.jyosh.monitoringsystem.repository.MonitorRepository;
 import org.springframework.stereotype.Service;
+import com.jyosh.monitoringsystem.service.HealthCheckService;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class MonitorService {
 
     private final MonitorRepository monitorRepository;
+    private final HealthCheckService healthCheckService;
 
-    public MonitorService(MonitorRepository monitorRepository) {
+    public MonitorService(
+            MonitorRepository monitorRepository,
+            HealthCheckService healthCheckService) {
+
         this.monitorRepository = monitorRepository;
+        this.healthCheckService = healthCheckService;
     }
 
-    public List<Monitor> getAllMonitors() {
-        return monitorRepository.findAll();
+    public List<MonitorDto> getAllMonitors() {
+
+        List<Monitor> monitors = monitorRepository.findAll();
+
+        for (Monitor monitor : monitors) {
+
+            String status = healthCheckService.checkHealth(monitor.getUrl());
+
+            monitor.setStatus(status);
+
+            monitorRepository.save(monitor);
+        }
+
+        return monitors.stream()
+                .map(this::convertToDto)
+                .toList();
     }
 
     public Monitor createMonitor(Monitor monitor) {
@@ -26,24 +47,34 @@ public class MonitorService {
 
     public Monitor updateMonitor(Long id, Monitor updatedMonitor) {
 
-        Optional<Monitor> monitorOptional =
-                monitorRepository.findById(id);
+        Monitor monitor = monitorRepository.findById(id)
+                .orElseThrow(() -> new MonitorNotFoundException(id));
 
-        if (monitorOptional.isPresent()) {
+        monitor.setName(updatedMonitor.getName());
+        monitor.setUrl(updatedMonitor.getUrl());
+        monitor.setStatus(updatedMonitor.getStatus());
 
-            Monitor monitor = monitorOptional.get();
+        return monitorRepository.save(monitor);
+    }
 
-            monitor.setName(updatedMonitor.getName());
-            monitor.setUrl(updatedMonitor.getUrl());
-            monitor.setStatus(updatedMonitor.getStatus());
-
-            return monitorRepository.save(monitor);
-        }
-
-        return null;
+    public Monitor getMonitorById(Long id) {
+        return monitorRepository.findById(id)
+                .orElseThrow(() -> new MonitorNotFoundException(id));
     }
 
     public void deleteMonitor(Long id) {
-        monitorRepository.deleteById(id);
+
+        Monitor monitor = monitorRepository.findById(id)
+                .orElseThrow(() -> new MonitorNotFoundException(id));
+
+        monitorRepository.delete(monitor);
+    }
+
+    private MonitorDto convertToDto(Monitor monitor) {
+        return new MonitorDto(
+                monitor.getId(),
+                monitor.getName(),
+                monitor.getStatus()
+        );
     }
 }

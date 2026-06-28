@@ -4,6 +4,7 @@ import com.jyosh.monitoringsystem.entity.Monitor;
 import com.jyosh.monitoringsystem.model.StatusResponse;
 import com.jyosh.monitoringsystem.service.MonitorService;
 import org.springframework.web.bind.annotation.*;
+import com.jyosh.monitoringsystem.dto.MonitorDto;
 
 import java.util.List;
 
@@ -25,8 +26,12 @@ public class HelloController {
     }
 
     @GetMapping("/api/monitors")
-    public List<Monitor> getMonitors() {
+    public List<MonitorDto> getMonitors() {
         return monitorService.getAllMonitors();
+    }
+    @GetMapping("/api/monitors/{id}")
+    public Monitor getMonitorById(@PathVariable Long id) {
+        return monitorService.getMonitorById(id);
     }
 
     @PostMapping("/api/monitors")
