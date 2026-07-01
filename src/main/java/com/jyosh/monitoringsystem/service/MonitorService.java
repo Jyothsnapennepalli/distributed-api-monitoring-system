@@ -5,7 +5,6 @@ import com.jyosh.monitoringsystem.entity.Monitor;
 import com.jyosh.monitoringsystem.exception.MonitorNotFoundException;
 import com.jyosh.monitoringsystem.repository.MonitorRepository;
 import org.springframework.stereotype.Service;
-import com.jyosh.monitoringsystem.service.HealthCheckService;
 
 import java.util.List;
 
@@ -13,30 +12,14 @@ import java.util.List;
 public class MonitorService {
 
     private final MonitorRepository monitorRepository;
-    private final HealthCheckService healthCheckService;
 
-    public MonitorService(
-            MonitorRepository monitorRepository,
-            HealthCheckService healthCheckService) {
-
+    public MonitorService(MonitorRepository monitorRepository) {
         this.monitorRepository = monitorRepository;
-        this.healthCheckService = healthCheckService;
     }
 
     public List<MonitorDto> getAllMonitors() {
-
-        List<Monitor> monitors = monitorRepository.findAll();
-
-        for (Monitor monitor : monitors) {
-
-            String status = healthCheckService.checkHealth(monitor.getUrl());
-
-            monitor.setStatus(status);
-
-            monitorRepository.save(monitor);
-        }
-
-        return monitors.stream()
+        return monitorRepository.findAll()
+                .stream()
                 .map(this::convertToDto)
                 .toList();
     }
@@ -74,7 +57,9 @@ public class MonitorService {
         return new MonitorDto(
                 monitor.getId(),
                 monitor.getName(),
-                monitor.getStatus()
+                monitor.getStatus(),
+                monitor.getResponseTime(),
+                monitor.getLastChecked()
         );
     }
 }

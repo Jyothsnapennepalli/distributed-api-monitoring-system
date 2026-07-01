@@ -5,6 +5,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
+import java.time.LocalDateTime;
+
 @Entity
 public class Monitor {
 
@@ -17,6 +19,12 @@ public class Monitor {
     private String url;
 
     private String status;
+
+    // New field: response time in milliseconds
+    private Long responseTime;
+
+    // New field: last time the monitor was checked
+    private LocalDateTime lastChecked;
 
     public Monitor() {
     }
@@ -58,5 +66,21 @@ public class Monitor {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public Long getResponseTime() {
+        return responseTime;
+    }
+
+    public void setResponseTime(Long responseTime) {
+        this.responseTime = responseTime;
+    }
+
+    public LocalDateTime getLastChecked() {
+        return lastChecked;
+    }
+
+    public void setLastChecked(LocalDateTime lastChecked) {
+        this.lastChecked = lastChecked;
     }
 }
